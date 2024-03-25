@@ -332,37 +332,26 @@ void Graph::q2Graph(int numVerts, bool unDirected) {
     }
 }
 
-void Graph::q3Graph(int numVerts, int numEdges) {
-    /* Accepts a number of verts and a number of edges and randomly creates edges between 2 random vertices (that may or
-   may not be undirected). The graph may not be connected, and can have anywhere from 0 nodes with 0 edges to V vertices
-     with (v * (v - 1))/2 edges <- I.e. a complete graph.
-     */
+void Graph::kruskalsMinSpan() {
+    // Inspired by https://www.geeksforgeeks.org/kruskals-minimum-spanning-tree-algorithm-greedy-algo-2.
+    // https://www.geeksforgeeks.org/detect-cycle-undirected-graph/?ref=lbp
+    std::vector<int> xyweightList; // Element 0 is x (start), 1 is y (dest), 2 is weight
 
-    // Create adjacency list
-    for (int i = 0; i < numVerts; i++) {
-        this->addNode(i);
-    }
+    // Create a list of all start vertices, dest vertices, and weights from the adjacency list.
+    std::vector<std::vector<int>> mst;
 
-    // Edge Creation and validation
-    int maxEdges = ((numVerts * (numVerts - 1)) / 2);
-    if(numEdges > maxEdges){
-        std::cout << "Number of requested edges (" << numEdges << " ) exceeds total maximum possible edges ("
-                  << maxEdges << "). Replacing edge request total with MaxEdges of: " << maxEdges << std::endl;
-        numEdges = maxEdges;
+    for (int i = 0; i < this->adjacencyList.size(); i++) {
+        int startNode = this->adjacencyList[i]->nodeID;
     }
+    //Find the last item in the vector with a weight <= to the current item weight
 
-    while (this->edgeCount < numEdges){
-        // Use Random to pick a start vert and dest vert between 0 and V - 1 where V - 1 is the last element in the
-        // adj list
-        int startNodeId = -1;
-        int endNodeId = -1;
-        do {
-            startNodeId = randomRangeGen((numVerts - 1), 0);
-            endNodeId = randomRangeGen((numVerts - 1), 0);
-        }
-        while(startNodeId == endNodeId);  // Ensure nodes are different
-        this->addEdge(startNodeId, endNodeId);
-    }
+    // Add current item to the next available spot in the vector after said last item
+
+    // Check start-dest from lowest to highest weight and add to MST if it does not create a cycle
+    // Chedck for cycle by seeing if you can traverse from the dest node to the start node
+
+    // invoke MST display method
+
 }
 
 int randomRangeGen(int endRange, int startRange = 0) {
@@ -395,6 +384,8 @@ int main() {
     filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\cmake-build-debug\undirectedGraph.csv)";
     readUndirected.readFromFile(filename);
     readUndirected.displayGraph();
+
+    // Test MST
 
     // Edge case to solve for: Reading in/writing out a graph with disconnected nodes (nodes with degree 0)
     std::cout << "done" << std::endl;
