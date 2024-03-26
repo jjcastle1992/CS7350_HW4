@@ -27,7 +27,7 @@ void Graph::addNode(int id) {
     Node *newNode = new Node;
     newNode->nodeID = id;
     newNode->nextNode = nullptr;
-    newNode->nextNodeWeight = -1; // Signals there are no connected nodes
+    newNode->weightToOrigin = 0; // Signals there are no connected nodes
     newNode->numDegrees = 0;
     if(this->adjacencyList.empty()){
         this->adjacencyList.push_back(newNode);
@@ -58,7 +58,7 @@ void Graph::addEdge(int startId, int destId, int edgeWeight = 1) {
             Node *newEdge = new Node;
             newEdge->nodeID = temp->nodeID;
             newEdge->nextNode = nullptr;
-            newEdge->nextNodeWeight = -1;
+            newEdge->weightToOrigin = 0;
 
             while(currentNode->nextNode != nullptr) {
                 if(currentNode->nextNode->nodeID == destId){
@@ -73,7 +73,7 @@ void Graph::addEdge(int startId, int destId, int edgeWeight = 1) {
             if (!preExistingEdge) { // if the edge does not exist, add it.
                 currentNode->nextNode = newEdge;
                 newEdge->nextNode = nullptr;
-                currentNode->nextNodeWeight = edgeWeight;
+                currentNode->weightToOrigin = edgeWeight;
                 localMaxDegree++;
                 headNode->numDegrees += 1;
                 if(headNode->numDegrees % 2 != 0){ // Checks to see if the node has odd degrees
@@ -154,7 +154,7 @@ int Graph::findNode(int targetNodeId) {
 }
 void Graph::displayGraph() {
     std::vector<Node*> graphToPrint = this->adjacencyList;
-    std::cout << "List of nodes in our adjacency list" << std::endl;
+    std::cout << "\nList of nodes in our adjacency list" << std::endl;
     for (int i = 0; i < graphToPrint.size(); i++ ) {
         int degrees = 0;
         bool firstPrint = true;
@@ -207,11 +207,11 @@ void Graph::writeToFile(const std::string& filename) {
 
         while(currentNode->nextNode != nullptr){
             int destId = -1;
-            int weight = -1;
+            int weight = 0;
             destId = currentNode->nextNode->nodeID;
-            weight = currentNode->nextNodeWeight;
+            weight = currentNode->weightToOrigin;
             // If all three are valid (not -1), then write to file
-            if ((startId != -1) && (destId != -1) && (weight != -1)){
+            if ((startId != -1) && (destId != -1) && (weight != 0)){
                 outfile << startId << "," << destId << "," << weight << std::endl;
             }
             currentNode = currentNode->nextNode;
@@ -335,6 +335,7 @@ void Graph::q2Graph(int numVerts, bool unDirected) {
 void Graph::kruskalsMinSpan() {
     // Inspired by https://www.geeksforgeeks.org/kruskals-minimum-spanning-tree-algorithm-greedy-algo-2.
     // https://www.geeksforgeeks.org/detect-cycle-undirected-graph/?ref=lbp
+    // https://www.simplilearn.com/tutorials/data-structure-tutorial/kruskal-algorithm
     std::vector<int> xyweightList; // Element 0 is x (start), 1 is y (dest), 2 is weight
 
     // Create a list of all start vertices, dest vertices, and weights from the adjacency list.
@@ -352,6 +353,63 @@ void Graph::kruskalsMinSpan() {
 
     // invoke MST display method
 
+}
+
+void Graph::primsMinSpan() {
+    // Inspired by https://www.freecodecamp.org/news/prims-algorithm-explained-with-pseudocode/
+    std::vector<Node*> mst;
+    std::vector<Node*> nodesToVisit;
+    int numNodes = 0;
+    int lowestWeightIdx; // To track the current lowest weight in the NodesToVisit list
+    int minWeight = 100000;
+    Node *currentNode;
+
+    std::cout << '\n' << "*****Prim's Minimum Spanning Tree*****" << std::endl;
+    while( numNodes < this->adjacencyList.size()){
+        // On first run, Arbitrarily choose first node in the adjacency list to start
+        if(mst.empty()){
+            currentNode = this->adjacencyList[0];
+        }
+        // else choose the lowest weight item in the nodesToVisit list
+        else {
+            currentNode = nodesToVisit[lowestWeightIdx];
+            std::cout << "-( " << minWeight << " )-> ";
+        }
+
+        // Add the node to the MST
+        mst.push_back(currentNode);
+        numNodes++;
+        std::cout << currentNode->nodeID;
+
+        // Add neighbors to the nodesToVisit list (if we haven't already explored all nodes)
+        while((currentNode->nextNode != nullptr) && (numNodes < this->adjacencyList.size())) {
+            int currentWeight = -9999;
+            currentNode = currentNode->nextNode;
+            // Check if the next node is already in the MST.
+            std::vector<Node*>::iterator it;
+            it = std::find(mst.begin(), mst.end(), currentNode);
+            // If not in list, add to the list of nodes to explore.
+            if(it == mst.end()){
+                // If noNodesToVisit, then add current node and mark current item as lowest weight (first item in nodesToVisit)
+                if(nodesToVisit.empty()) {
+                    lowestWeightIdx = 0;  // Because list was empty
+                    minWeight = currentNode->weightToOrigin;
+                    nodesToVisit.push_back(currentNode);
+                }
+                    // Else if nodesToVisit not empty, compare the current nodes nextNode weight to
+                else {
+                    int currentWeight = currentNode->weightToOrigin;
+                    // Compare nextNode weight to current Lowest weight in the NodesToVisit list
+                    if(currentWeight < minWeight){
+                        nodesToVisit.push_back(currentNode);
+                        minWeight = currentWeight;
+                        lowestWeightIdx = (nodesToVisit.size() - 1);  // Set the lowest weight index to the last item
+                    }
+                }
+            }
+        }
+    }
+    std::cout << "\nPrim's Alogrithm MST completed." << std::endl;
 }
 
 int randomRangeGen(int endRange, int startRange = 0) {
@@ -375,10 +433,10 @@ int main() {
 //    graph.writeToFile("test.csv");
 
     // Test out the complete undirected graph
-    Graph undirectedCompleteGraph;
-    undirectedCompleteGraph.q1Graph(9);
-    undirectedCompleteGraph.displayGraph();
-    undirectedCompleteGraph.writeToFile("undirectedGraph.csv");
+//    Graph undirectedCompleteGraph;
+//    undirectedCompleteGraph.q1Graph(9);
+//    undirectedCompleteGraph.displayGraph();
+//    undirectedCompleteGraph.writeToFile("undirectedGraph.csv");
 
     Graph readUndirected;
     filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\cmake-build-debug\undirectedGraph.csv)";
@@ -386,6 +444,11 @@ int main() {
     readUndirected.displayGraph();
 
     // Test MST
+    filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\weightedImport.csv)";
+    Graph mst;
+    mst.readFromFile(filename);
+    mst.displayGraph();
+    mst.primsMinSpan();
 
     // Edge case to solve for: Reading in/writing out a graph with disconnected nodes (nodes with degree 0)
     std::cout << "done" << std::endl;

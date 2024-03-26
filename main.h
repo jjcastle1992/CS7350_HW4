@@ -18,7 +18,7 @@ Purpose: Interface for my driver file that will be testing my graph object.
 struct Node {
     int nodeID;
     Node *nextNode;
-    int nextNodeWeight;
+    int weightToOrigin;
     int numDegrees; // to detect Euler tours at head of each list element
 };
 
@@ -50,6 +50,7 @@ public:
 
     // MST methods
     void kruskalsMinSpan(); // Kruskal's MST algorithm that provides a minimum spanning tree
+    void primsMinSpan(); // Prims MST algorithm that provides a minimum spanning tree.
 
     // Question-based methods (For all edges in Q1 - Q2, weights are 0)
     void q1Graph(int); // creates graph per q1 spec (accepts # verts and makes an undirected complete graph).
