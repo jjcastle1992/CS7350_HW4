@@ -394,58 +394,13 @@ void Graph::primsMinSpan() {
             }
         }
     }
-
-//    while( numNodes < graph.size()){
-//        // On first run, Arbitrarily choose first node in the adjacency list to start
-//        int nodeWeight = 0;
-//        if(mst.empty()){
-//            currentNode = graph[0];
-//        }
-//        // else choose the lowest weight item in the nodesToVisit list
-//        else {
-//            int nodeIdToSearch = nodesToVisit[lowestWeightIdx][1];
-//            int listIndex = this->findNode(nodeIdToSearch);
-//            currentNode = this->adjacencyList[listIndex];
-//            std::cout << "-( " << nodesToVisit[lowestWeightIdx][2] << " )-> ";
-//        }
-//
-//        // Add neighbors to the nodesToVisit list (if we haven't already explored all nodes)
-//        int originId = currentNode->nodeID;
-//        Node *originNode = currentNode;
-//        while((currentNode->nextNode != nullptr) && (numNodes < this->adjacencyList.size())) {
-//            currentNode = currentNode->nextNode;
-//            // Check if the next node is already in the MST.
-//            bool inMst = false;
-//            for(int i = 0; i < mst.size(); i++){
-//                if(currentNode->nodeID == mst[i][0]){
-//                    inMst = true;
-//                }
-//            }
-//            // If not in list, add to the list of nodes to explore.
-//            if(!inMst){
-//                // If noNodesToVisit, then add current node and mark current item as lowest weight (first item in nodesToVisit)
-//                if(nodesToVisit.empty()) {
-//                    lowestWeightIdx = 0;  // Because list was empty
-//                    minWeight = currentNode->prevNode->nextNodeWeight;
-//                    nodesToVisit.push_back({originId, currentNode->nodeID, currentNode->prevNode->nextNodeWeight});
-//                }
-//                // Else if nodesToVisit not empty, add to nodes to visit and adjust min weight as needed.
-//                else {
-//                    int currentWeight = currentNode->prevNode->nextNodeWeight;
-//                    nodesToVisit.push_back({originId, currentNode->nodeID, currentNode->prevNode->nextNodeWeight});
-//                    // Compare nextNode weight to current Lowest weight in the NodesToVisit list
-//                    if(currentWeight < minWeight){
-//                        minWeight = currentWeight;
-//                        lowestWeightIdx = (nodesToVisit.size() - 1);  // Set the lowest weight index to the last item
-//                    }
-//                }
-//            }
-//        }
-//        // Add the node to the MST
-//        mst.push_back({originNode->nodeID, minWeight});
-//        numNodes++;
-//        std::cout << originNode->nodeID;
-//    }
+    //Print MST (skip 0 because it is the start node captured in start/dest info of index 1)
+    std::cout << "Final spanning tree: " << std::endl;
+    for (int i = 1; i < mst.size(); i++){
+        std::cout << mst[i][0] << " --> " << mst[i][1] << " Weight: "<< mst[i][2] << std::endl;  // print start/dest node and weight
+        totalWeight += mst[i][2];  // accumulate weight
+    }
+    std::cout << "\nTotal Cost: " << totalWeight << std::endl;
     std::cout << "\nPrim's Alogrithm MST completed." << std::endl;
 }
 
