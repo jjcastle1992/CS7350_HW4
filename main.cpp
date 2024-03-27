@@ -169,7 +169,7 @@ void Graph::displayGraph() {
                 std::cout << graphToPrint[i]->nodeID;
             }
             currentNode = currentNode->nextNode;
-            std::cout << " -> " << currentNode->nodeID;
+            std::cout << " --> " << currentNode->nodeID << "(" << currentNode->prevNode->nextNodeWeight << ")";
             degrees++;
             firstPrint = false;
         }
@@ -280,7 +280,7 @@ void Graph::readFromFile(const std::string & filename) {
     infile.close();
 }
 
-void Graph::q1Graph(int numVerts) {
+void Graph::createCompleteGraph(int numVerts) {
     // Creates a complete undirected graph with passed in number of vertices with edges of weight 1
     // This means each vertex must have a connection (in both direction) to every other node
 
@@ -292,12 +292,13 @@ void Graph::q1Graph(int numVerts) {
     // Create the undirected edges
     for (int j = 0; j < numVerts; j++) {
         for(int k = 0; k < numVerts; k++){
-            this->addUndirectedEdge(j,k, 1);
+            int weight = randomRangeGen(100, 1);  // Give a random weight from 1 to 100
+            this->addUndirectedEdge(j,k, weight);
         }
     }
 }
 
-void Graph::q2Graph(int numVerts, bool unDirected) {
+void Graph::createCycleGraph(int numVerts, bool unDirected) {
     // Creates a graph with V vertices in Cycle format (where each node connects with 2 nodes),
     // Start and end nodes point to each other
     // In my format, I will have each node in the adjacency list point to the node previous and node next, except
@@ -313,23 +314,25 @@ void Graph::q2Graph(int numVerts, bool unDirected) {
     if(unDirected){
         for (int i = 0; i < numVerts; i++) {
             // if tail (end of list), set next to [0], and previous to [V - 1]
-            if(i == (numVerts - 1)){this->addUndirectedEdge(i, 0, 1);}
+            int weight = randomRangeGen(100, 1);  // Give a random weight from 1 to 100
+            if(i == (numVerts - 1)){this->addUndirectedEdge(i, 0, weight);}
 
                 // else, set previous to [V - 1] and next to [V + 1]
             else {
-                this->addUndirectedEdge(i, (i + 1), 1);
+                this->addUndirectedEdge(i, (i + 1), weight);
             }
         }
     }
     else{
         for (int i = 0; i < numVerts; i++) {
             // if tail (end of list), set next to [0], and previous to [V - 1]
+            int weight = randomRangeGen(100, 1);  // Give a random weight from 1 to 100
             if(i == (numVerts - 1)) {
-                this->addEdge(i, 0, 1);
+                this->addEdge(i, 0, weight);
             }
                 // else, set previous to [V - 1] and next to [V + 1]
             else{
-                this->addEdge(i, (i + 1), 1);
+                this->addEdge(i, (i + 1), weight);
             }
         }
     }
@@ -430,19 +433,33 @@ int main() {
 //    undirectedCompleteGraph.displayGraph();
 //    undirectedCompleteGraph.writeToFile("undirectedGraph.csv");
 
-    Graph readUndirected;
-    filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\cmake-build-debug\undirectedGraph.csv)";
-    readUndirected.readFromFile(filename);
-    readUndirected.displayGraph();
+//    Graph readUndirected;
+//    filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\cmake-build-debug\undirectedGraph.csv)";
+//    readUndirected.readFromFile(filename);
+//    readUndirected.displayGraph();
+//    readUndirected.primsMinSpan();
 
-    // Test MST
-    filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\weightedImport.csv)";
-    Graph mst;
-    mst.readFromFile(filename);
-    mst.displayGraph();
-    mst.primsMinSpan();
+//    // Test MST
+//    filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\weightedImport.csv)";
+//    Graph mst;
+//    mst.readFromFile(filename);
+//    mst.displayGraph();
+//    mst.primsMinSpan();
+//
+//    // Test second MST
+//    filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\exgraph2.csv)";
+//    Graph mst2;
+//    mst2.readFromFile(filename);
+//    mst2.displayGraph();
+//    mst2.primsMinSpan();
+
+    // Write out complete graph with random weights of size V = 6 E = |V *(V - 1) /2 |
+    Graph completeRandomGraph;
+    completeRandomGraph.createCompleteGraph(4);
+    completeRandomGraph.displayGraph();
+    completeRandomGraph.primsMinSpan();
 
     // Edge case to solve for: Reading in/writing out a graph with disconnected nodes (nodes with degree 0)
-    std::cout << "done" << std::endl;
+    std::cout << "\ndone" << std::endl;
     return 0;
 }
