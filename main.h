@@ -18,7 +18,8 @@ Purpose: Interface for my driver file that will be testing my graph object.
 struct Node {
     int nodeID;
     Node *nextNode;
-    int weightToOrigin;
+    Node *prevNode; // to get the node previous weight
+    int nextNodeWeight;
     int numDegrees; // to detect Euler tours at head of each list element
 };
 

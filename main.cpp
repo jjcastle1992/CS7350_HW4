@@ -27,7 +27,8 @@ void Graph::addNode(int id) {
     Node *newNode = new Node;
     newNode->nodeID = id;
     newNode->nextNode = nullptr;
-    newNode->weightToOrigin = 0; // Signals there are no connected nodes
+    newNode->prevNode = nullptr;
+    newNode->nextNodeWeight = -1; // Signals there are no connected nodes
     newNode->numDegrees = 0;
     if(this->adjacencyList.empty()){
         this->adjacencyList.push_back(newNode);
@@ -58,7 +59,8 @@ void Graph::addEdge(int startId, int destId, int edgeWeight = 1) {
             Node *newEdge = new Node;
             newEdge->nodeID = temp->nodeID;
             newEdge->nextNode = nullptr;
-            newEdge->weightToOrigin = 0;
+            newEdge->prevNode = nullptr;
+            newEdge->nextNodeWeight = -1;
 
             while(currentNode->nextNode != nullptr) {
                 if(currentNode->nextNode->nodeID == destId){
@@ -73,7 +75,8 @@ void Graph::addEdge(int startId, int destId, int edgeWeight = 1) {
             if (!preExistingEdge) { // if the edge does not exist, add it.
                 currentNode->nextNode = newEdge;
                 newEdge->nextNode = nullptr;
-                currentNode->weightToOrigin = edgeWeight;
+                newEdge->prevNode = currentNode;
+                currentNode->nextNodeWeight = edgeWeight;
                 localMaxDegree++;
                 headNode->numDegrees += 1;
                 if(headNode->numDegrees % 2 != 0){ // Checks to see if the node has odd degrees
@@ -207,11 +210,11 @@ void Graph::writeToFile(const std::string& filename) {
 
         while(currentNode->nextNode != nullptr){
             int destId = -1;
-            int weight = 0;
+            int weight = -1;
             destId = currentNode->nextNode->nodeID;
-            weight = currentNode->weightToOrigin;
+            weight = currentNode->nextNodeWeight;
             // If all three are valid (not -1), then write to file
-            if ((startId != -1) && (destId != -1) && (weight != 0)){
+            if ((startId != -1) && (destId != -1) && (weight != -1)){
                 outfile << startId << "," << destId << "," << weight << std::endl;
             }
             currentNode = currentNode->nextNode;
@@ -393,12 +396,12 @@ void Graph::primsMinSpan() {
                 // If noNodesToVisit, then add current node and mark current item as lowest weight (first item in nodesToVisit)
                 if(nodesToVisit.empty()) {
                     lowestWeightIdx = 0;  // Because list was empty
-                    minWeight = currentNode->weightToOrigin;
+                    minWeight = currentNode->nextNodeWeight;
                     nodesToVisit.push_back(currentNode);
                 }
                     // Else if nodesToVisit not empty, compare the current nodes nextNode weight to
                 else {
-                    int currentWeight = currentNode->weightToOrigin;
+                    int currentWeight = currentNode->nextNodeWeight;
                     // Compare nextNode weight to current Lowest weight in the NodesToVisit list
                     if(currentWeight < minWeight){
                         nodesToVisit.push_back(currentNode);
