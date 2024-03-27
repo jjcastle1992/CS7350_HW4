@@ -47,16 +47,14 @@ public:
     void clearGraph(); // Deletes Adjacency Matrix
     void writeToFile(const std::string&); // writes adjacency list data to file per spec
     void readFromFile(const std::string&); // reads adjacency list data to file per spec
-    void displayMST(); // Prints the Minimum Spanning Tree for a given graph.
     static bool sortcol(const std::vector<int>&, const std::vector<int>&);
 
     // MST methods
-    void kruskalsMinSpan(); // Kruskal's MST algorithm that provides a minimum spanning tree
     void primsMinSpan(); // Prims MST algorithm that provides a minimum spanning tree.
 
-    // Question-based methods (For all edges in Q1 - Q2, weights are 0)
-    void q1Graph(int); // creates graph per q1 spec (accepts # verts and makes an undirected complete graph).
-    void q2Graph(int, bool); // Create a graph per q2 spec (Accept # Verts, and undirected bool and makes a Cycle graph)
+    // Graph Creation Methods
+    void createCompleteGraph(int); // creates a complete undirected graph w/ V verts with random edge weights between (1 - 100).
+    void createCycleGraph(int, bool); // Create a cycle graph w/ v Verts and either directed/undirected with random edge weights (1 - 100)
 
 
 private:
