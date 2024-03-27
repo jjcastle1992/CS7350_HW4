@@ -381,6 +381,32 @@ void Graph::primsMinSpan() {
         originNode = currentNode;
         edgeSet.erase(edgeSet.begin());
 
+        // Erase any items in edgeset where start and dest are both in the MST
+        bool startInEdgeSet = false;
+        bool destInEdgeSet = false;
+        for (int i = 0; i < edgeSet.size(); i++){
+            //Compare edgetSet items 0 (start) and 1 (dest) to see if both in edgeset
+            int start = edgeSet[i][0];
+            int dest = edgeSet[i][1];
+            for (int j = 0; j < mst.size(); j++){
+                if(mst[j][1] == start){
+                    startInEdgeSet = true;
+                }
+                if(mst[j][1] == dest){
+                    destInEdgeSet = true;
+                }
+
+                if(startInEdgeSet && destInEdgeSet){
+                    break;
+                }
+            }
+            if(startInEdgeSet && destInEdgeSet){
+                edgeSet.erase(edgeSet.begin() + i); // If start and dest nodes in MST, no need to consider edge
+                startInEdgeSet = false;
+                destInEdgeSet = false;
+            }
+        }
+
         // Look at edges connected to this new current vertex
         while(currentNode->nextNode != nullptr){
             currentNode = currentNode->nextNode;
@@ -454,10 +480,31 @@ int main() {
 //    mst2.primsMinSpan();
 
     // Write out complete graph with random weights of size V = 6 E = |V *(V - 1) /2 |
-    Graph completeRandomGraph;
-    completeRandomGraph.createCompleteGraph(4);
-    completeRandomGraph.displayGraph();
-    completeRandomGraph.primsMinSpan();
+    std::cout << "**************************Complete Graph Tests**************************" << std::endl;
+//    Graph completeRandomGraph;
+//    completeRandomGraph.createCompleteGraph(4);
+//    completeRandomGraph.displayGraph();
+//    completeRandomGraph.primsMinSpan();
+//    int i = 1;
+//    filename = "complete" + std::to_string(i) + ".csv";
+//    completeRandomGraph.writeToFile(filename);
+
+    // Figure out why PRIM is not throwing away edge for visited node
+    filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\cmake-build-debug\brokecomplete1.csv)";
+    Graph brokeComplete;
+    brokeComplete.readFromFile(filename);
+    brokeComplete.displayGraph();
+    brokeComplete.primsMinSpan();
+
+    // Test creating an undirected cycle Graph V = N and E = V
+//    std::cout << "**************************Cycle Graph Tests**************************" << std::endl;
+//    Graph cycleRandomGraph;
+//    cycleRandomGraph.createCycleGraph(6, true);
+//    cycleRandomGraph.displayGraph();
+//    cycleRandomGraph.primsMinSpan();
+//    i = 1;
+//    filename = "cycle" + std::to_string(i) + ".csv";
+//    cycleRandomGraph.writeToFile(filename);
 
     // Edge case to solve for: Reading in/writing out a graph with disconnected nodes (nodes with degree 0)
     std::cout << "\ndone" << std::endl;
