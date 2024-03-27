@@ -335,83 +335,117 @@ void Graph::q2Graph(int numVerts, bool unDirected) {
     }
 }
 
-void Graph::kruskalsMinSpan() {
-    // Inspired by https://www.geeksforgeeks.org/kruskals-minimum-spanning-tree-algorithm-greedy-algo-2.
-    // https://www.geeksforgeeks.org/detect-cycle-undirected-graph/?ref=lbp
-    // https://www.simplilearn.com/tutorials/data-structure-tutorial/kruskal-algorithm
-    std::vector<int> xyweightList; // Element 0 is x (start), 1 is y (dest), 2 is weight
-
-    // Create a list of all start vertices, dest vertices, and weights from the adjacency list.
-    std::vector<std::vector<int>> mst;
-
-    for (int i = 0; i < this->adjacencyList.size(); i++) {
-        int startNode = this->adjacencyList[i]->nodeID;
-    }
-    //Find the last item in the vector with a weight <= to the current item weight
-
-    // Add current item to the next available spot in the vector after said last item
-
-    // Check start-dest from lowest to highest weight and add to MST if it does not create a cycle
-    // Chedck for cycle by seeing if you can traverse from the dest node to the start node
-
-    // invoke MST display method
-
+bool Graph::sortcol(const std::vector<int> &v1, const std::vector<int> &v2) {
+    // From https://www.geeksforgeeks.org/sorting-2d-vector-in-c-set-2-in-descending-order-by-row-and-column/
+    return v1[2] < v2[2]; // sort by weight (smallest to largest)
 }
 
 void Graph::primsMinSpan() {
     // Inspired by https://www.freecodecamp.org/news/prims-algorithm-explained-with-pseudocode/
-    std::vector<Node*> mst;
-    std::vector<Node*> nodesToVisit;
+    std::vector<Node*> graph;
+    std::vector<std::vector<int>> mst; // [start_id, dest_id, weight]
+    std::vector<std::vector<int>> edgeSet;  // [start_id, dest_id, weight]
+    int totalWeight = 0;
+    graph = this->adjacencyList;
     int numNodes = 0;
     int lowestWeightIdx; // To track the current lowest weight in the NodesToVisit list
-    int minWeight = 100000;
+    int minWeight = 999999;
     Node *currentNode;
+    Node *originNode;
 
     std::cout << '\n' << "*****Prim's Minimum Spanning Tree*****" << std::endl;
-    while( numNodes < this->adjacencyList.size()){
-        // On first run, Arbitrarily choose first node in the adjacency list to start
-        if(mst.empty()){
-            currentNode = this->adjacencyList[0];
-        }
-        // else choose the lowest weight item in the nodesToVisit list
-        else {
-            currentNode = nodesToVisit[lowestWeightIdx];
-            std::cout << "-( " << minWeight << " )-> ";
-        }
 
-        // Add the node to the MST
-        mst.push_back(currentNode);
-        numNodes++;
-        std::cout << currentNode->nodeID;
+    // Select the first vertex to start tree
+    currentNode = graph[0];
+    originNode = graph[0];
+    mst.push_back({currentNode->nodeID, currentNode->nodeID, 0}); // Because start node. Not an edge.
 
-        // Add neighbors to the nodesToVisit list (if we haven't already explored all nodes)
-        while((currentNode->nextNode != nullptr) && (numNodes < this->adjacencyList.size())) {
-            int currentWeight = -9999;
+    // Initialize set of edges to consider
+    while(currentNode->nextNode != nullptr){
+        currentNode = currentNode->nextNode;
+        edgeSet.push_back({graph[0]->nodeID, currentNode->nodeID, currentNode->prevNode->nextNodeWeight});
+    }
+
+    // Iterate until all verts in MST (size = graph size)
+    for(int i = 0; i < graph.size() - 1; i++ ){
+        // Find min edge in edge set (sort)
+        std::sort(edgeSet.begin(), edgeSet.end(), Graph::sortcol);
+
+        // Add vertex to min span tree
+        mst.push_back(edgeSet[0]);
+        int adjListIndex = this->findNode(edgeSet[0][1]);
+        currentNode = adjacencyList[adjListIndex];
+        originNode = currentNode;
+        edgeSet.erase(edgeSet.begin());
+
+        // Look at edges connected to this new current vertex
+        while(currentNode->nextNode != nullptr){
             currentNode = currentNode->nextNode;
-            // Check if the next node is already in the MST.
-            std::vector<Node*>::iterator it;
-            it = std::find(mst.begin(), mst.end(), currentNode);
-            // If not in list, add to the list of nodes to explore.
-            if(it == mst.end()){
-                // If noNodesToVisit, then add current node and mark current item as lowest weight (first item in nodesToVisit)
-                if(nodesToVisit.empty()) {
-                    lowestWeightIdx = 0;  // Because list was empty
-                    minWeight = currentNode->nextNodeWeight;
-                    nodesToVisit.push_back(currentNode);
+            // If not in MST (i.e. the dest is not the source), add edges connected to new current vertex
+            bool inMST = false;
+            for (int i = 0; i < mst.size(); i++){
+                if (currentNode->nodeID == mst[i][1]){
+                    inMST = true;
+                    break;
                 }
-                    // Else if nodesToVisit not empty, compare the current nodes nextNode weight to
-                else {
-                    int currentWeight = currentNode->nextNodeWeight;
-                    // Compare nextNode weight to current Lowest weight in the NodesToVisit list
-                    if(currentWeight < minWeight){
-                        nodesToVisit.push_back(currentNode);
-                        minWeight = currentWeight;
-                        lowestWeightIdx = (nodesToVisit.size() - 1);  // Set the lowest weight index to the last item
-                    }
-                }
+            }
+            if(! inMST){
+                edgeSet.push_back({originNode->nodeID, currentNode->nodeID, currentNode->prevNode->nextNodeWeight});
             }
         }
     }
+
+//    while( numNodes < graph.size()){
+//        // On first run, Arbitrarily choose first node in the adjacency list to start
+//        int nodeWeight = 0;
+//        if(mst.empty()){
+//            currentNode = graph[0];
+//        }
+//        // else choose the lowest weight item in the nodesToVisit list
+//        else {
+//            int nodeIdToSearch = nodesToVisit[lowestWeightIdx][1];
+//            int listIndex = this->findNode(nodeIdToSearch);
+//            currentNode = this->adjacencyList[listIndex];
+//            std::cout << "-( " << nodesToVisit[lowestWeightIdx][2] << " )-> ";
+//        }
+//
+//        // Add neighbors to the nodesToVisit list (if we haven't already explored all nodes)
+//        int originId = currentNode->nodeID;
+//        Node *originNode = currentNode;
+//        while((currentNode->nextNode != nullptr) && (numNodes < this->adjacencyList.size())) {
+//            currentNode = currentNode->nextNode;
+//            // Check if the next node is already in the MST.
+//            bool inMst = false;
+//            for(int i = 0; i < mst.size(); i++){
+//                if(currentNode->nodeID == mst[i][0]){
+//                    inMst = true;
+//                }
+//            }
+//            // If not in list, add to the list of nodes to explore.
+//            if(!inMst){
+//                // If noNodesToVisit, then add current node and mark current item as lowest weight (first item in nodesToVisit)
+//                if(nodesToVisit.empty()) {
+//                    lowestWeightIdx = 0;  // Because list was empty
+//                    minWeight = currentNode->prevNode->nextNodeWeight;
+//                    nodesToVisit.push_back({originId, currentNode->nodeID, currentNode->prevNode->nextNodeWeight});
+//                }
+//                // Else if nodesToVisit not empty, add to nodes to visit and adjust min weight as needed.
+//                else {
+//                    int currentWeight = currentNode->prevNode->nextNodeWeight;
+//                    nodesToVisit.push_back({originId, currentNode->nodeID, currentNode->prevNode->nextNodeWeight});
+//                    // Compare nextNode weight to current Lowest weight in the NodesToVisit list
+//                    if(currentWeight < minWeight){
+//                        minWeight = currentWeight;
+//                        lowestWeightIdx = (nodesToVisit.size() - 1);  // Set the lowest weight index to the last item
+//                    }
+//                }
+//            }
+//        }
+//        // Add the node to the MST
+//        mst.push_back({originNode->nodeID, minWeight});
+//        numNodes++;
+//        std::cout << originNode->nodeID;
+//    }
     std::cout << "\nPrim's Alogrithm MST completed." << std::endl;
 }
 

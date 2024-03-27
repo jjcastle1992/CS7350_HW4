@@ -48,6 +48,7 @@ public:
     void writeToFile(const std::string&); // writes adjacency list data to file per spec
     void readFromFile(const std::string&); // reads adjacency list data to file per spec
     void displayMST(); // Prints the Minimum Spanning Tree for a given graph.
+    static bool sortcol(const std::vector<int>&, const std::vector<int>&);
 
     // MST methods
     void kruskalsMinSpan(); // Kruskal's MST algorithm that provides a minimum spanning tree
