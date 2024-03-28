@@ -23,6 +23,10 @@ void Graph::setVerbose(bool beVerbose) {
     this->verbose = beVerbose;
 }
 
+int Graph::getNodeCount() {
+    return this->nodeCount;
+}
+
 void Graph::addNode(int id) {
     Node *newNode = new Node;
     newNode->nodeID = id;
@@ -340,10 +344,10 @@ void Graph::createCycleGraph(int numVerts, bool unDirected) {
 
 void Graph::createRandomGraph(int numVerts, int numEdges) {
     /* Accepts a number of verts and a number of edges and randomly creates edges between 2 random vertices (that may or
-may not be undirected). The graph may not be connected, and can have anywhere from 0 nodes with 0 edges to V vertices
+may not be undirected). The graph must be connected (for MST), and can have anywhere from 0 nodes with 0 edges to V vertices
  with (v * (v - 1))/2 edges <- I.e. a complete graph.
  */
-
+    std::set<int> nodesWithEdges;
     // Create adjacency list
     for (int i = 0; i < numVerts; i++) {
         this->addNode(i);
@@ -362,12 +366,31 @@ may not be undirected). The graph may not be connected, and can have anywhere fr
         // adj list
         int startNodeId = -1;
         int endNodeId = -1;
+        int weight = -1;
+        bool nodeInSet = false;
+
         do {
             startNodeId = randomRangeGen((numVerts - 1), 0);
             endNodeId = randomRangeGen((numVerts - 1), 0);
+            weight = randomRangeGen(100, 1);
+
+            // Ensure one or both nodes are in the nodes with edges set to avoid disconnected graphs
+            auto startVal = nodesWithEdges.find(startNodeId);
+            auto endVal = nodesWithEdges.find(endNodeId);
+            if ((endVal!= nodesWithEdges.end()) || (startVal != nodesWithEdges.end())) {
+                nodeInSet = true;
+            }
+
+            if(nodesWithEdges.empty()){
+                nodeInSet = true; // allow addition of node on first run only.
+            }
+
         }
         while(startNodeId == endNodeId);  // Ensure nodes are different
-        this->addEdge(startNodeId, endNodeId);
+        this->addEdge(startNodeId, endNodeId, weight);
+        nodesWithEdges.insert(startNodeId);
+        nodesWithEdges.insert(endNodeId);
+
     }
 }
 
@@ -550,60 +573,125 @@ int main() {
 
 ************************************************ END TESTING SECTION *************************************************/
 
-    // Writing Test Files Section
-    int numFiles = 10;
-    int numNodes = 10;
-    int numEdges = 20;
-    for (int i = 0; i < numFiles; i++){
-        Graph completeRandomGraph;
-        Graph cycleRandomGraph;
-        Graph randomRandomGraph;
+//    // **********************************Writing Test Files Section*************************************************
+
+//    int numFiles = 10;
+//    int numNodes = 10;
+//    int numEdges = 20;
+//    for (int i = 0; i < numFiles; i++){
+//        Graph completeRandomGraph;
+//        Graph cycleRandomGraph;
+//        Graph randomRandomGraph;
 
         // Make the graphs
-        completeRandomGraph.createCompleteGraph(numNodes);
-        cycleRandomGraph.createCycleGraph(numNodes,true);
-        randomRandomGraph.createRandomGraph(numNodes, numEdges);
+//        completeRandomGraph.createCompleteGraph(numNodes);
+//        cycleRandomGraph.createCycleGraph(numNodes,true);
+//        randomRandomGraph.createRandomGraph(numNodes, numEdges);
 
         // Write the files
-        std::string completeFileName = filename = "complete" + std::to_string(i) + ".csv";
-        std::string cycleFileName = filename = "cycle" + std::to_string(i) + ".csv";
-        std::string randomFileName = filename = "random" + std::to_string(i) + ".csv";
-        completeRandomGraph.writeToFile(completeFileName);
-        cycleRandomGraph.writeToFile(cycleFileName);
-        randomRandomGraph.writeToFile(randomFileName);
+//        std::string completeFileName = filename = "complete" + std::to_string(i) + ".csv";
+//        std::string cycleFileName = filename = "cycle" + std::to_string(i) + ".csv";
+//        std::string randomFileName = filename = "random" + std::to_string(i) + ".csv";
+//        completeRandomGraph.writeToFile(completeFileName);
+//        cycleRandomGraph.writeToFile(cycleFileName);
+//        randomRandomGraph.writeToFile(randomFileName);
 
         // Increment sizes and do it all again
-        numNodes += 10;
-        numEdges += 10;
-    }
-    
-    // End of Writing Test Files
+//        numNodes += 10;
+//        numEdges += 2 * numNodes;
+//    }
 
-//    // Test creating an undirected cycle Graph V = N and E = V
-//    std::cout << "**************************Cycle Graph Tests**************************" << std::endl;
-//    Graph cycleRandomGraph;
-//    cycleRandomGraph.createCycleGraph(6, true);
-//    cycleRandomGraph.displayGraph();
-//    cycleRandomGraph.primsMinSpan();
-//    i = 1;
-//    filename = "cycle" + std::to_string(i) + ".csv";
-//    cycleRandomGraph.writeToFile(filename);
-//
-//    std::cout << "**************************Complete Graph Tests**************************" << std::endl;
-//    Graph completeRandomGraph;
-//    int v = 50;
-//    completeRandomGraph.createCompleteGraph(v);
-//    int i = 1;
-////    filename = "complete" + std::to_string(v) + ".csv";
-////    completeRandomGraph.writeToFile(filename);
-//    completeRandomGraph.displayGraph();
-//    //Time  PRIM per Q2
-//    auto start = std::chrono::high_resolution_clock::now();  // start timer
-//    completeRandomGraph.primsMinSpan();
-//    auto stop = std::chrono::high_resolution_clock::now(); // stop timer
-//    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-//    std::cout << "For V: " << v << "\n" <<"Time taken by problem: " << duration.count()
-//              << " microseconds\n" << std::endl;
+//    // **********************End of Writing Test Files***************************************************************
+
+    // ************************READ FILES AND TEST SECTION*************************************************************
+    // Test creating an undirected cycle Graph V = N and E = V
+
+    std::vector<std::vector<long long>>  cycleTiming;  // [NumNodes][Q1 Time (Graph read)][Q2 Time [MST creation)]
+
+    std::cout << "**************************Cycle Graph Tests**************************" << std::endl;
+    for (int i = 0; i < 10; i++) {
+        Graph cycleRandomGraph;
+        std::string cycleFileName = filename = "cycle" + std::to_string(i) + ".csv";
+        // Q1 Timing
+        auto q1start = std::chrono::high_resolution_clock::now();  // start timer
+        cycleRandomGraph.readFromFile(cycleFileName);
+        auto q1stop = std::chrono::high_resolution_clock::now(); // stop timer
+        auto q1duration = std::chrono::duration_cast<std::chrono::microseconds>(q1stop - q1start);
+
+//        cycleRandomGraph.displayGraph();
+
+        //Q2 timing
+        auto q2start = std::chrono::high_resolution_clock::now();  // start timer
+        cycleRandomGraph.primsMinSpan();
+        auto q2stop = std::chrono::high_resolution_clock::now(); // stop timer
+        auto q2duration = std::chrono::duration_cast<std::chrono::microseconds>(q2stop - q2start);
+
+        cycleTiming.push_back({cycleRandomGraph.getNodeCount(), q1duration.count(), q2duration.count()});
+    }
+    for (int i = 0; i < cycleTiming.size(); i++) {
+        std::cout << "\nCycle Timing Stats:" <<
+        "\n\tNodeCount: " << cycleTiming[i][0] <<
+        "\n\tQ1 (Create) Timing: " << cycleTiming[i][1] << " Microseconds" <<
+        "\n\tQ2 (MST) Timing: " << cycleTiming[i][2] << " Microseconds" << std::endl;
+    }
+
+
+    std::cout << "**************************Complete Graph Tests**************************" << std::endl;
+    std::vector<std::vector<long long>>  completeTiming;  // [NumNodes][Q1 Time (Graph read)][Q2 Time [MST creation)]
+    for (int i = 0; i < 10; i++) {
+        Graph completeRandomGraph;
+        std::string completeFileName = filename = "complete" + std::to_string(i) + ".csv";
+        // Q1 Timing
+        auto q1start = std::chrono::high_resolution_clock::now();  // start timer
+        completeRandomGraph.readFromFile(completeFileName);
+        auto q1stop = std::chrono::high_resolution_clock::now(); // stop timer
+        auto q1duration = std::chrono::duration_cast<std::chrono::microseconds>(q1stop - q1start);
+
+//        completeRandomGraph.displayGraph();
+
+        //Q2 timing
+        auto q2start = std::chrono::high_resolution_clock::now();  // start timer
+        completeRandomGraph.primsMinSpan();
+        auto q2stop = std::chrono::high_resolution_clock::now(); // stop timer
+        auto q2duration = std::chrono::duration_cast<std::chrono::microseconds>(q2stop - q2start);
+
+        completeTiming.push_back({completeRandomGraph.getNodeCount(), q1duration.count(), q2duration.count()});
+    }
+    for (int i = 0; i < completeTiming.size(); i++) {
+        std::cout << "\nComplete Graph Timing Stats:" <<
+                  "\n\tNodeCount: " << cycleTiming[i][0] <<
+                  "\n\tQ1 (Create) Timing: " << cycleTiming[i][1] << " Microseconds" <<
+                  "\n\tQ2 (MST) Timing: " << cycleTiming[i][2] << " Microseconds" << std::endl;
+    }
+
+    std::cout << "**************************Random Graph Tests**************************" << std::endl;
+    std::vector<std::vector<long long>>  randomTiming;  // [NumNodes][Q1 Time (Graph read)][Q2 Time [MST creation)]
+    for (int i = 0; i < 10; i++) {
+        Graph randomRandomGraph;
+        std::string randomFileName = filename = "random" + std::to_string(i) + ".csv";
+        // Q1 Timing
+        auto q1start = std::chrono::high_resolution_clock::now();  // start timer
+        randomRandomGraph.readFromFile(randomFileName);
+        auto q1stop = std::chrono::high_resolution_clock::now(); // stop timer
+        auto q1duration = std::chrono::duration_cast<std::chrono::microseconds>(q1stop - q1start);
+
+//        randomRandomGraph.displayGraph();
+
+        //Q2 timing
+        auto q2start = std::chrono::high_resolution_clock::now();  // start timer
+        randomRandomGraph.primsMinSpan();
+        auto q2stop = std::chrono::high_resolution_clock::now(); // stop timer
+        auto q2duration = std::chrono::duration_cast<std::chrono::microseconds>(q2stop - q2start);
+
+        randomTiming.push_back({randomRandomGraph.getNodeCount(), q1duration.count(), q2duration.count()});
+    }
+    for (int i = 0; i < randomTiming.size(); i++) {
+        std::cout << "\nRandom Graph Timing Stats:" <<
+                  "\n\tNodeCount: " << cycleTiming[i][0] <<
+                  "\n\tQ1 (Create) Timing: " << cycleTiming[i][1] << " Microseconds" <<
+                  "\n\tQ2 (MST) Timing: " << cycleTiming[i][2] << " Microseconds" << std::endl;
+    }
+    // ************************END READ FILES AND TEST SECTION**********************************************************
 
     // Edge case to solve for: Reading in/writing out a graph with disconnected nodes (nodes with degree 0)
     std::cout << "\ndone" << std::endl;
