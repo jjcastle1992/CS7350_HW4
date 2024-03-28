@@ -338,6 +338,39 @@ void Graph::createCycleGraph(int numVerts, bool unDirected) {
     }
 }
 
+void Graph::createRandomGraph(int numVerts, int numEdges) {
+    /* Accepts a number of verts and a number of edges and randomly creates edges between 2 random vertices (that may or
+may not be undirected). The graph may not be connected, and can have anywhere from 0 nodes with 0 edges to V vertices
+ with (v * (v - 1))/2 edges <- I.e. a complete graph.
+ */
+
+    // Create adjacency list
+    for (int i = 0; i < numVerts; i++) {
+        this->addNode(i);
+    }
+
+    // Edge Creation and validation
+    int maxEdges = ((numVerts * (numVerts - 1)) / 2);
+    if(numEdges > maxEdges){
+        std::cout << "Number of requested edges (" << numEdges << " ) exceeds total maximum possible edges ("
+                  << maxEdges << "). Replacing edge request total with MaxEdges of: " << maxEdges << std::endl;
+        numEdges = maxEdges;
+    }
+
+    while (this->edgeCount < numEdges){
+        // Use Random to pick a start vert and dest vert between 0 and V - 1 where V - 1 is the last element in the
+        // adj list
+        int startNodeId = -1;
+        int endNodeId = -1;
+        do {
+            startNodeId = randomRangeGen((numVerts - 1), 0);
+            endNodeId = randomRangeGen((numVerts - 1), 0);
+        }
+        while(startNodeId == endNodeId);  // Ensure nodes are different
+        this->addEdge(startNodeId, endNodeId);
+    }
+}
+
 bool Graph::sortcol(const std::vector<int> &v1, const std::vector<int> &v2) {
     // From https://www.geeksforgeeks.org/sorting-2d-vector-in-c-set-2-in-descending-order-by-row-and-column/
     return v1[2] < v2[2]; // sort by weight (smallest to largest)
@@ -446,7 +479,7 @@ int randomRangeGen(int endRange, int startRange = 0) {
 int main() {
     std::string filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\exampleImport.csv)";
     std::srand(time(nullptr));
-
+    /* *****************************TESTING SECTION ********************************************************************
 // First round testing
 //    Graph graph;
 //    graph.readFromFile(filename);
@@ -479,24 +512,74 @@ int main() {
 //    mst2.displayGraph();
 //    mst2.primsMinSpan();
 
-    // Write out complete graph with random weights of size V = 6 E = |V *(V - 1) /2 |
-    std::cout << "**************************Complete Graph Tests**************************" << std::endl;
-//    Graph completeRandomGraph;
-//    completeRandomGraph.createCompleteGraph(4);
-//    completeRandomGraph.displayGraph();
-//    completeRandomGraph.primsMinSpan();
-//    int i = 1;
-//    filename = "complete" + std::to_string(i) + ".csv";
-//    completeRandomGraph.writeToFile(filename);
-
-    // Figure out why PRIM is not throwing away edge for visited node
-    filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\cmake-build-debug\brokecomplete1.csv)";
-    Graph brokeComplete;
-    brokeComplete.readFromFile(filename);
-    brokeComplete.displayGraph();
-    brokeComplete.primsMinSpan();
+//    // Figure out why PRIM is not throwing away edge for visited node
+//    filename = R"(C:\Users\Wolf\Dropbox\Grad School\Spring 2024\CS7350\Module 4\HW4Code\cmake-build-debug\brokecomplete1.csv)";
+//    Graph brokeComplete;
+//    brokeComplete.readFromFile(filename);
+//    brokeComplete.displayGraph();
+//    brokeComplete.primsMinSpan();
 
     // Test creating an undirected cycle Graph V = N and E = V
+    std::cout << "**************************Cycle Graph Tests**************************" << std::endl;
+    Graph cycleRandomGraph;
+    cycleRandomGraph.createCycleGraph(6, true);
+    cycleRandomGraph.displayGraph();
+    cycleRandomGraph.primsMinSpan();
+    i = 1;
+    filename = "cycle" + std::to_string(i) + ".csv";
+    cycleRandomGraph.writeToFile(filename);
+
+
+    // Write out complete graph with random weights of size V = 6 E = |V *(V - 1) /2 |
+    std::cout << "**************************Complete Graph Tests**************************" << std::endl;
+    Graph completeRandomGraph;
+    int v = 50;
+    completeRandomGraph.createCompleteGraph(v);
+    int i = 1;
+//    filename = "complete" + std::to_string(v) + ".csv";
+//    completeRandomGraph.writeToFile(filename);
+    completeRandomGraph.displayGraph();
+
+    //Time  PRIM per Q2
+    auto start = std::chrono::high_resolution_clock::now();  // start timer
+    completeRandomGraph.primsMinSpan();
+    auto stop = std::chrono::high_resolution_clock::now(); // stop timer
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    std::cout << "For V: " << v << "\n" <<"Time taken by problem: " << duration.count()
+              << " microseconds\n" << std::endl;
+
+************************************************ END TESTING SECTION *************************************************/
+
+    // Writing Test Files Section
+    int numFiles = 10;
+    int numNodes = 10;
+    int numEdges = 20;
+    for (int i = 0; i < numFiles; i++){
+        Graph completeRandomGraph;
+        Graph cycleRandomGraph;
+        Graph randomRandomGraph;
+
+        // Make the graphs
+        completeRandomGraph.createCompleteGraph(numNodes);
+        cycleRandomGraph.createCycleGraph(numNodes,true);
+        randomRandomGraph.createRandomGraph(numNodes, numEdges);
+
+        // Write the files
+        std::string completeFileName = filename = "complete" + std::to_string(i) + ".csv";
+        std::string cycleFileName = filename = "cycle" + std::to_string(i) + ".csv";
+        std::string randomFileName = filename = "random" + std::to_string(i) + ".csv";
+        completeRandomGraph.writeToFile(completeFileName);
+        cycleRandomGraph.writeToFile(cycleFileName);
+        randomRandomGraph.writeToFile(randomFileName);
+
+        // Increment sizes and do it all again
+        numNodes += 10;
+        numEdges += 10;
+    }
+    
+    // End of Writing Test Files
+
+//    // Test creating an undirected cycle Graph V = N and E = V
 //    std::cout << "**************************Cycle Graph Tests**************************" << std::endl;
 //    Graph cycleRandomGraph;
 //    cycleRandomGraph.createCycleGraph(6, true);
@@ -505,6 +588,22 @@ int main() {
 //    i = 1;
 //    filename = "cycle" + std::to_string(i) + ".csv";
 //    cycleRandomGraph.writeToFile(filename);
+//
+//    std::cout << "**************************Complete Graph Tests**************************" << std::endl;
+//    Graph completeRandomGraph;
+//    int v = 50;
+//    completeRandomGraph.createCompleteGraph(v);
+//    int i = 1;
+////    filename = "complete" + std::to_string(v) + ".csv";
+////    completeRandomGraph.writeToFile(filename);
+//    completeRandomGraph.displayGraph();
+//    //Time  PRIM per Q2
+//    auto start = std::chrono::high_resolution_clock::now();  // start timer
+//    completeRandomGraph.primsMinSpan();
+//    auto stop = std::chrono::high_resolution_clock::now(); // stop timer
+//    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+//    std::cout << "For V: " << v << "\n" <<"Time taken by problem: " << duration.count()
+//              << " microseconds\n" << std::endl;
 
     // Edge case to solve for: Reading in/writing out a graph with disconnected nodes (nodes with degree 0)
     std::cout << "\ndone" << std::endl;
