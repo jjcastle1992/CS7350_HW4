@@ -36,6 +36,7 @@ public:
 
     // Setters  <- breaking encapsulation by not using for attributes, but not trying to be robust
     void setVerbose(bool); // Set debugging prints on or off
+    int getNodeCount(); // Gets nodeCount
 
     //Vertex & Edge Add/Removal
     void addNode(int); // Takes in a Node ID
@@ -55,7 +56,7 @@ public:
     // Graph Creation Methods
     void createCompleteGraph(int); // creates a complete undirected graph w/ V verts with random edge weights between (1 - 100).
     void createCycleGraph(int, bool); // Create a cycle graph w/ v Verts and either directed/undirected with random edge weights (1 - 100)
-    void createRandomGraph(int, int); // Creates a random graph that may be disconnected, connected, undirected or directed.
+    void createRandomGraph(int, int); // Creates a random graph that is connected, but may undirected or directed.
 
 
 private:
