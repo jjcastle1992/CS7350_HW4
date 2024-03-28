@@ -55,6 +55,7 @@ public:
     // Graph Creation Methods
     void createCompleteGraph(int); // creates a complete undirected graph w/ V verts with random edge weights between (1 - 100).
     void createCycleGraph(int, bool); // Create a cycle graph w/ v Verts and either directed/undirected with random edge weights (1 - 100)
+    void createRandomGraph(int, int); // Creates a random graph that may be disconnected, connected, undirected or directed.
 
 
 private:
